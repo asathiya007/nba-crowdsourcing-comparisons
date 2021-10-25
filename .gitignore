@@ -1,0 +1,4 @@
+.DS_Store
+__pycache__/
+cs6220_nbacc/ 
+test.py 
