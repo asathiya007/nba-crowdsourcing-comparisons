@@ -13,13 +13,13 @@ def index():
 
 
 
-@app.route('/stats/<player1>/<player2>/')
-def stats(player1=None, player2=None):
+@app.route('/stats/<player1>/<player2>/<season1>/<season2>')
+def stats(player1=None, player2=None, season1=None, season2=None):
     
     player1 = player1.replace("_", " ")
     player2 = player2.replace("_", " ")
     
-    player1stats, player1url, player2stats, player2url = get_specific_pair(player1, player2, '2018-19', '2018-19')
+    player1stats, player1url, player2stats, player2url = get_specific_pair(player1, player2, season1, season2)
 
     stats1 = player1stats.to_json()
     stats2 = player2stats.to_json()
