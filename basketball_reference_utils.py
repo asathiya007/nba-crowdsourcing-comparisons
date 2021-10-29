@@ -1,6 +1,6 @@
 # import modules 
 from basketball_reference_scraper.players import get_stats, get_player_headshot
-import logging 
+import logging
 import random
 
 # define constants 
@@ -115,6 +115,11 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
             + season2 + ' season')
 
     # return player stats and headshots 
+
+    print("Player_stats1")
+    print(player_stats1)
+    print("Player_stats2")
+    print(player_stats2)
     return player_stats1, player_headshot1, player_stats2, player_headshot2
 
 def get_random_pair(playoffs=False, career=False):
@@ -148,4 +153,8 @@ def get_random_pair(playoffs=False, career=False):
     player_stats2 = player_stats2.sample() 
 
     # return player stats and headshots 
+
     return player_stats1, player_headshot1, player_stats2, player_headshot2
+
+
+get_specific_pair('Stephen Curry', 'Giannis Antetokounmpo', '2018-19', '2018-19')
