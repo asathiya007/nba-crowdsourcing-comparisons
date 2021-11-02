@@ -1,6 +1,6 @@
 # import modules 
 from flask import Flask, json, request, jsonify, url_for
-from basketball_reference_utils import get_specific_pair
+from basketball_reference_utils import get_specific_pair, get_random_pair
 
 # initialize Flask app 
 app = Flask(__name__)
@@ -28,8 +28,15 @@ def stats(player1=None, player2=None, season1=None, season2=None):
 
     return statsTotal
 
+@app.route('/stats/random')
+def randomStats():
+    player1stats, player1url, player2stats, player2url = get_random_pair()
     
+    stats1 = player1stats.to_json()
+    stats2 = player2stats.to_json()
+    statsTotal = stats1 + stats2
 
+    return statsTotal
 
 
 @app.route('/test')
