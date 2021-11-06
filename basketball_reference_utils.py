@@ -115,11 +115,6 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
             + season2 + ' season')
 
     # return player stats and headshots 
-
-    print("Player_stats1")
-    print(player_stats1)
-    print("Player_stats2")
-    print(player_stats2)
     return player_stats1, player_headshot1, player_stats2, player_headshot2
 
 def get_random_pair(playoffs=False, career=False):

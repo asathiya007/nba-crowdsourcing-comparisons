@@ -9,8 +9,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "<p>CS 62000 NBA Crowdsourcing Project</p>"
-
+    return "<p>CS 6220 NBA Crowdsourcing Project</p>"
 
 
 @app.route('/stats/<player1>/<player2>/<season1>/<season2>')
