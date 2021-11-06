@@ -4,7 +4,7 @@ import logging
 import random
 
 # define constants 
-STATS = ['PTS', 'AST', 'TRB', 'STL', 'BLK', 'TOV', 'MP', 'FG%']
+STATS = ['PTS', 'AST', 'TRB', 'STL', 'BLK', 'G', 'MP', 'FG%']
 COLUMNS = ['SEASON', 'TEAM', 'POS'] + STATS
 PLAYER_NAMES = [
     'Kobe Bryant',
