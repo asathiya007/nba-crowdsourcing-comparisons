@@ -2,15 +2,14 @@
 from flask import Flask, json, request, jsonify, url_for
 from basketball_reference_utils import get_specific_pair, get_random_pair
 
+
 # initialize Flask app 
 app = Flask(__name__)
-
 
 
 @app.route('/')
 def index():
     return "<p>CS 6220 NBA Crowdsourcing Project</p>"
-
 
 @app.route('/stats/<player1>/<player2>/<season1>/<season2>')
 def stats(player1=None, player2=None, season1=None, season2=None):
@@ -19,23 +18,35 @@ def stats(player1=None, player2=None, season1=None, season2=None):
     player2 = player2.replace("_", " ")
     
     player1stats, player1url, player2stats, player2url = get_specific_pair(player1, player2, season1, season2)
+    res = {
+        'player1': {
+            'stats': player1stats, 
+            'img': player1url
+        }, 
+        'player2': {
+            'stats': player2stats, 
+            'img': player2url
+        }
+    }
 
-    stats1 = player1stats.to_json()
-    stats2 = player2stats.to_json()
-
-    statsTotal = stats1 + stats2
-
-    return statsTotal
+    return jsonify(res)
 
 @app.route('/stats/random')
 def randomStats():
     player1stats, player1url, player2stats, player2url = get_random_pair()
     
-    stats1 = player1stats.to_json()
-    stats2 = player2stats.to_json()
-    statsTotal = stats1 + stats2
+    res = {
+        'player1': {
+            'stats': player1stats, 
+            'img': player1url
+        }, 
+        'player2': {
+            'stats': player2stats, 
+            'img': player2url
+        }
+    }
 
-    return statsTotal
+    return jsonify(res)
 
 
 @app.route('/test')
