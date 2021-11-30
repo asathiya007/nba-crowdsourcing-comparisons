@@ -3,8 +3,9 @@ from basketball_reference_scraper.players import get_stats, get_player_headshot
 import logging
 import random
 
+
 # define constants 
-STATS = ['PTS', 'AST', 'TRB', 'STL', 'BLK', 'G', 'MP', 'FG%']
+STATS = ['PTS', 'AST', 'TRB', 'STL', 'BLK', 'TOV', 'G', 'MP', 'FG%']
 COLUMNS = ['SEASON', 'TEAM', 'POS'] + STATS
 PLAYER_NAMES = [
     'Kobe Bryant',
@@ -39,6 +40,7 @@ PLAYER_NAMES = [
     'Jaylen Brown'
 ]
 
+
 def get_player_info(player_name, playoffs=False, career=False): 
     ''' 
     Function to scrape the stats of an NBA player from 
@@ -62,6 +64,7 @@ def get_player_info(player_name, playoffs=False, career=False):
         player_stats = get_stats(player_name, playoffs=playoffs, career=career, 
             ask_matches=False)
         player_stats = player_stats[COLUMNS]
+        player_stats['G'] = player_stats['G'].astype(float)
         player_stats.insert(0, 'NAME', player_name)
     except: 
         logging.error('Could not get player info, provided name might be ' 
@@ -105,6 +108,8 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
     if len(player_stats1) == 0: 
         logging.warning(player_name1 + ' did not play during the ' 
             + season1 + 'season')
+    else: 
+        player_stats1 = dict(player_stats1.iloc[0]) 
 
     # get player 2 stats for the provided season 
     player_stats2, player_headshot2 = get_player_info(player_name2, 
@@ -113,6 +118,8 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
     if len(player_stats2) == 0: 
         logging.warning(player_name2 + ' did not play during the ' 
             + season2 + ' season')
+    else: 
+        player_stats2 = dict(player_stats2.iloc[0]) 
 
     # return player stats and headshots 
     return player_stats1, player_headshot1, player_stats2, player_headshot2
@@ -140,16 +147,14 @@ def get_random_pair(playoffs=False, career=False):
     # get player1 stats for a random season 
     player_stats1, player_headshot1 = get_player_info(player_name1, 
         playoffs=playoffs, career=career)
-    player_stats1 = player_stats1.sample() 
+    player_stats1 = player_stats1.sample()
+    player_stats1 = dict(player_stats1.iloc[0]) 
 
     # get player2 stats for a random season 
     player_stats2, player_headshot2 = get_player_info(player_name2, 
         playoffs=playoffs, career=career)
     player_stats2 = player_stats2.sample() 
+    player_stats2 = dict(player_stats2.iloc[0]) 
 
     # return player stats and headshots 
-
     return player_stats1, player_headshot1, player_stats2, player_headshot2
-
-
-get_specific_pair('Stephen Curry', 'Giannis Antetokounmpo', '2018-19', '2018-19')
