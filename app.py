@@ -30,11 +30,15 @@ def stats(player1=None, player2=None, season1=None, season2=None):
 @app.route('/stats/random')
 def randomStats():
     player1stats, player1url, player2stats, player2url = get_random_pair()
-    
-    stats1 = player1stats.to_json()
-    stats2 = player2stats.to_json()
-    statsTotal = stats1 + stats2
+    statsTotal = []
+    stats1 = player1stats.to_json(orient = "records")
+    stats2 = player2stats.to_json(orient = "records")
 
+    
+    statsTotal = stats1 + "&" + stats2
+    
+
+    
     return statsTotal
 
 
