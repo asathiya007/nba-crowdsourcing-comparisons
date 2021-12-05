@@ -64,6 +64,7 @@ def get_player_info(player_name, playoffs=False, career=False):
         player_stats = get_stats(player_name, playoffs=playoffs, career=career, 
             ask_matches=False)
         player_stats = player_stats[COLUMNS]
+        player_stats['G'] = player_stats['G'].astype(float)
         player_stats.insert(0, 'NAME', player_name)
     except: 
         logging.error('Could not get player info, provided name might be ' 

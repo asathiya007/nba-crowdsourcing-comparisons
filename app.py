@@ -55,7 +55,10 @@ def randomStats():
         }
     }
 
+    print(res)
+
     return jsonify(res)
+    
 
 
 @app.route('/test')
