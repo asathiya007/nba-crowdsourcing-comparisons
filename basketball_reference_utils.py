@@ -120,6 +120,11 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
     else: 
         player_stats2 = dict(player_stats2.iloc[0]) 
 
+    # change types to float 
+    for stat in STATS: 
+        player_stats1[stat] = float(player_stats1[stat])
+        player_stats2[stat] = float(player_stats2[stat])
+
     # return player stats and headshots 
     return player_stats1, player_headshot1, player_stats2, player_headshot2
 
@@ -154,6 +159,11 @@ def get_random_pair(playoffs=False, career=False):
         playoffs=playoffs, career=career)
     player_stats2 = player_stats2.sample() 
     player_stats2 = dict(player_stats2.iloc[0]) 
+
+    # change types to float 
+    for stat in STATS: 
+        player_stats1[stat] = float(player_stats1[stat])
+        player_stats2[stat] = float(player_stats2[stat])
 
     # return player stats and headshots 
     return player_stats1, player_headshot1, player_stats2, player_headshot2
