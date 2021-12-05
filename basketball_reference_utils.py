@@ -66,7 +66,7 @@ def get_player_info(player_name, playoffs=False, career=False):
         player_stats = player_stats[COLUMNS]
         drop_indices = []
         for i in range(len(player_stats)):
-            if 'did not play' in player_stats.loc[i, 'G'].lower(): 
+            if 'did not play' in str(player_stats.loc[i, 'G']).lower(): 
                 drop_indices.append(i)
         player_stats = player_stats.drop(index=drop_indices)
         player_stats['G'] = player_stats['G'].astype(float)
@@ -113,7 +113,8 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
     player_stats1 = player_stats1.loc[player_stats1['SEASON'] == season1]
     if len(player_stats1) == 0: 
         logging.warning(player_name1 + ' did not play during the ' 
-            + season1 + 'season')
+            + season1 + ' season')
+        player_stats1 = None
     else: 
         player_stats1 = dict(player_stats1.iloc[0]) 
 
@@ -124,13 +125,16 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
     if len(player_stats2) == 0: 
         logging.warning(player_name2 + ' did not play during the ' 
             + season2 + ' season')
+        player_stats2 = None
     else: 
         player_stats2 = dict(player_stats2.iloc[0]) 
 
     # change types to float 
     for stat in STATS: 
-        player_stats1[stat] = float(player_stats1[stat])
-        player_stats2[stat] = float(player_stats2[stat])
+        if player_stats1 is not None: 
+            player_stats1[stat] = float(player_stats1[stat])
+        if player_stats2 is not None:
+            player_stats2[stat] = float(player_stats2[stat])
 
     # return player stats and headshots 
     return player_stats1, player_headshot1, player_stats2, player_headshot2
