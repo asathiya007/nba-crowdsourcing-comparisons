@@ -64,9 +64,15 @@ def get_player_info(player_name, playoffs=False, career=False):
         player_stats = get_stats(player_name, playoffs=playoffs, career=career, 
             ask_matches=False)
         player_stats = player_stats[COLUMNS]
+        drop_indices = []
+        for i in range(len(player_stats)):
+            if 'did not play' in player_stats.loc[i, 'G'].lower(): 
+                drop_indices.append(i)
+        player_stats = player_stats.drop(index=drop_indices)
         player_stats['G'] = player_stats['G'].astype(float)
         player_stats.insert(0, 'NAME', player_name)
-    except: 
+    except Exception as e: 
+        print(e)
         logging.error('Could not get player info, provided name might be ' 
             + 'invalid')
         
