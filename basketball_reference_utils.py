@@ -64,15 +64,15 @@ def get_player_info(player_name, playoffs=False, career=False):
         player_stats = get_stats(player_name, playoffs=playoffs, career=career, 
             ask_matches=False)
         player_stats = player_stats[COLUMNS]
+        player_stats.insert(0, 'NAME', player_name)
         drop_indices = []
         for i in range(len(player_stats)):
             if 'did not play' in str(player_stats.loc[i, 'G']).lower(): 
                 drop_indices.append(i)
         player_stats = player_stats.drop(index=drop_indices)
-        player_stats['G'] = player_stats['G'].astype(float)
-        player_stats.insert(0, 'NAME', player_name)
-    except Exception as e: 
-        print(e)
+        for stat in STATS: 
+            player_stats[stat] = player_stats[stat].astype(float)
+    except Exception: 
         logging.error('Could not get player info, provided name might be ' 
             + 'invalid')
         
@@ -129,13 +129,6 @@ def get_specific_pair(player_name1, player_name2, season1, season2,
     else: 
         player_stats2 = dict(player_stats2.iloc[0]) 
 
-    # change types to float 
-    for stat in STATS: 
-        if player_stats1 is not None: 
-            player_stats1[stat] = float(player_stats1[stat])
-        if player_stats2 is not None:
-            player_stats2[stat] = float(player_stats2[stat])
-
     # return player stats and headshots 
     return player_stats1, player_headshot1, player_stats2, player_headshot2
 
@@ -169,12 +162,7 @@ def get_random_pair(playoffs=False, career=False):
     player_stats2, player_headshot2 = get_player_info(player_name2, 
         playoffs=playoffs, career=career)
     player_stats2 = player_stats2.sample() 
-    player_stats2 = dict(player_stats2.iloc[0]) 
-
-    # change types to float 
-    for stat in STATS: 
-        player_stats1[stat] = float(player_stats1[stat])
-        player_stats2[stat] = float(player_stats2[stat])
+    player_stats2 = dict(player_stats2.iloc[0])    
 
     # return player stats and headshots 
     return player_stats1, player_headshot1, player_stats2, player_headshot2

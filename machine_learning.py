@@ -126,7 +126,7 @@ def construct_dataset():
     # create dataframe 
     dataset_df = pd.DataFrame(dataset, columns=columns)
     try: 
-        dataset_df.to_csv('./nba_crowdsourcing_comparisons.csv') 
+        dataset_df.to_csv('./nba_crowdsourcing_comparisons.csv', index=False) 
     except: 
         logging.warn('Dataset could not be saved as CSV file')
 

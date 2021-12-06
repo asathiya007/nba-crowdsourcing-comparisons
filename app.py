@@ -40,9 +40,7 @@ def stats(player1=None, player2=None, season1=None, season2=None):
 def randomStats():
     
     player1stats, player1url, player2stats, player2url = None, None, None, None
-    while (player1stats is None or player1url is None or player2stats is None or 
-        player2url is None):  
-        player1stats, player1url, player2stats, player2url = get_random_pair()
+    player1stats, player1url, player2stats, player2url = get_random_pair()
     
     res = {
         'player1': {
@@ -54,8 +52,6 @@ def randomStats():
             'img': player2url
         }
     }
-
-    print(res)
 
     return jsonify(res)
     
