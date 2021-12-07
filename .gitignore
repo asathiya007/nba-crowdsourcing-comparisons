@@ -2,6 +2,5 @@
 __pycache__/
 cs6220_nbacc/ 
 test.py 
-*.ipynb 
 .ipynb_checkpoints/
 *.json
