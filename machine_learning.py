@@ -1,15 +1,17 @@
 # import modules
+import argparse
 from basketball_reference_utils import get_specific_pair, STATS
 import firebase_admin
 from firebase_admin import credentials, db
 import joblib 
-import logging
+import os
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score, accuracy_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+import time 
 
 # declare constants 
 FEATURES = [
@@ -32,14 +34,20 @@ FEATURES = [
     'mp2',   
     'sp2'
 ]
+DEFAULT_HOLDOUT = 0.20
+RF_NUM_EST=10
+RF_MAX_DEPTH=10
+RF_MAX_FEATURES=None
+
 
 def construct_dataset():
     # connect to database 
-    cred = credentials.Certificate(
-        './basketball-crowdsourcing-firebase-adminsdk-rmel8-fd8a465175.json')
-    firebase_admin.initialize_app(cred, {
-        'databaseURL': 'https://basketball-crowdsourcing-default-rtdb.firebaseio.com/'
-    })
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(
+            './basketball-crowdsourcing-firebase-adminsdk-rmel8-fd8a465175.json')
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://basketball-crowdsourcing-default-rtdb.firebaseio.com/'
+        })
 
     # get questions and responses 
     questions_ref, responses_ref = db.reference('/questions'), db.reference(
@@ -88,6 +96,10 @@ def construct_dataset():
         player2_name = player2_dict['name']
         player2_season = player2_dict['season']
 
+        # if player 1 or player 2 name is undefined, skip to next sample 
+        if player1_name.strip() == 'undefined' or player2_name.strip() == 'undefined':
+            continue
+
         # get player stats
         player1_stats, _, player2_stats, _ = get_specific_pair(player1_name, 
             player2_name, player1_season, player2_season)
@@ -103,14 +115,14 @@ def construct_dataset():
         for stat in STATS: 
             feature_vector.append(player2_stats[stat])
         
-        # get label 
-        player1_votes = responses[question][player1_name]
-        player2_votes = responses[question][player2_name]
-        label = None
-        if player1_votes > player2_votes: 
-            label = 0
-        elif player2_votes > player1_votes: 
-            label = 1
+        # get label
+        label = None 
+        try: 
+            player1_votes = responses[question][player1_name]
+            player2_votes = responses[question][player2_name]
+            label = player1_votes / (player1_votes + player2_votes)
+        except:
+            continue
         
         # add sample to dataset 
         if label is None: 
@@ -118,95 +130,84 @@ def construct_dataset():
         dataset.append(feature_vector + [label])
 
         # add flipped sample to dataset 
-        flipped_label = 1 if label == 0 else 0
+        flipped_label = 1 - label
         flipped_feature_vector = (feature_vector[len(feature_vector) // 2 :] 
             + feature_vector[: len(feature_vector) // 2])
         dataset.append(flipped_feature_vector + [flipped_label])
 
     # create dataframe 
     dataset_df = pd.DataFrame(dataset, columns=columns)
-    try: 
-        dataset_df.to_csv('./nba_crowdsourcing_comparisons.csv', index=False) 
-    except: 
-        logging.warn('Dataset could not be saved as CSV file')
+    dataset_df.to_csv('./nba_crowdsourcing_comparisons.csv', index=False) 
 
     # return dataset
     return dataset_df
 
-def _train_machine_learning_models(nba_train_features, nba_train_labels, nba_test_features, 
+def train_machine_learning_models(nba_train_features, nba_train_labels, nba_test_features, 
     nba_test_labels):
-    # fit and evaluate logistic regression model 
-    logistic_regression = LogisticRegression()
-    logistic_regression.fit(nba_train_features, nba_train_labels)
-    print('Fitted logistic regression model!')
-    preds = logistic_regression.predict(nba_test_features)
-    print('F1 score: ', f1_score(nba_test_labels, preds) )
-    print('Accuracy: ', accuracy_score(nba_test_labels, preds))
-    joblib.dump(logistic_regression, './logistic_regression.joblib')
-    print('Saved logistic regression model as ./logistic_regression.joblib\n')
+    # fit and evaluate linear regression model 
+    linear_regression = LinearRegression()
+    linear_regression.fit(nba_train_features, nba_train_labels)
+    print('Trained linear regression model')
+    preds = linear_regression.predict(nba_test_features)
+    lr_mse = mean_squared_error(nba_test_labels, preds)
+    print('Mean Squared Error: ', lr_mse)
+    joblib.dump(linear_regression, './linear_regression.joblib')
+    print('Saved linear regression model as ./linear_regression.joblib\n')
     
     # fit and evaluate random forest model 
-    random_forest = RandomForestClassifier(n_estimators=5, max_depth=20)
+    random_forest = RandomForestRegressor(
+        n_estimators=RF_NUM_EST,
+        max_depth=RF_MAX_DEPTH, 
+        max_features=RF_MAX_FEATURES
+    )
     random_forest.fit(nba_train_features, nba_train_labels)
-    print('Fitted random forest model!')
+    print('Trained random forest model')
     preds = random_forest.predict(nba_test_features)
-    print('F1 score: ', f1_score(nba_test_labels, preds) )
-    print('Accuracy: ', accuracy_score(nba_test_labels, preds))
+    rf_mse = mean_squared_error(nba_test_labels, preds)
+    print('Mean Squared Error: ', rf_mse)
     joblib.dump(random_forest, './random_forest.joblib')
     print('Saved random forest model as ./random_forest.joblib\n')
 
-def predict_better_player(model_path, player_name1, player_name2, season1, 
-    season2, playoffs=False, career=False): 
-    # get players' stats 
-    player1_stats, _, player2_stats, _ = get_specific_pair(player_name1, 
-        player_name2, season1, season2, playoffs=playoffs, career=career)
-    
-    # create feature vector 
-    feature_vector1 = []
-    feature_vector2 = []
-    for stat in STATS: 
-        feature_vector1.append(player1_stats[stat])
-        feature_vector2.append(player2_stats[stat])
-    feature_vector = feature_vector1 + feature_vector2
+    # return accuracies and F1 scores 
+    return linear_regression, lr_mse, random_forest, rf_mse
 
-    # load scaler and model, then make prediction 
-    std_scaler = None 
-    try: 
-        std_scaler = joblib.load('./std_scaler.joblib')
-    except: 
-        logging.warn('Could not load standard scaler')
-        return None
-    feature_vector = pd.DataFrame([feature_vector], columns=FEATURES)
-    feature_vector = std_scaler.transform(feature_vector)
-
-    model = joblib.load(model_path)
-    pred = model.predict_proba(feature_vector)
-
-    # return prediction to user 
-    return pred
-
-def machine_learning_pipeline(): 
+def machine_learning_pipeline(use_existing_data=1): 
     # construct dataset from Firebase table data 
-    nba_dataset = construct_dataset() 
+    if use_existing_data == 0 or not os.path.exists(
+        './nba_crowdsourcing_comparisons.csv'): 
+        nba_dataset = construct_dataset() 
+    else: 
+        nba_dataset = pd.read_csv('./nba_crowdsourcing_comparisons.csv')
+        print('Loaded existing dataset\n')
 
     # extract features and labels 
     nba_features = nba_dataset[FEATURES]
-    nba_labels = nba_dataset['label']
+    nba_labels = nba_dataset['label']    
 
-    # partition dataset for model training 
+    # partition dataset for model training, standard-scale features
     (nba_train_features, nba_test_features, nba_train_labels,
-        nba_test_labels) = train_test_split(nba_features, nba_labels, test_size=0.2, 
-        shuffle=True)
-
-    # perform scaling, save scaler 
-    std_scaler = StandardScaler()
-    nba_train_features = std_scaler.fit_transform(nba_train_features)
-    nba_test_features = std_scaler.transform(nba_test_features)
-    joblib.dump(std_scaler, './std_scaler.joblib')
+        nba_test_labels) = train_test_split(nba_features, nba_labels, 
+        test_size=DEFAULT_HOLDOUT, shuffle=True)
+    standard_scaler = StandardScaler()
+    nba_train_features = standard_scaler.fit_transform(nba_train_features)
+    nba_test_features = standard_scaler.transform(nba_test_features)
+    joblib.dump(standard_scaler, './standard_scaler.joblib')
+    print('Prepared data for model training\n')
 
     # train models 
-    _train_machine_learning_models(nba_train_features, nba_train_labels, 
+    train_machine_learning_models(nba_train_features, nba_train_labels, 
         nba_test_features, nba_test_labels)
 
 if __name__=='__main__':
-    machine_learning_pipeline()
+    # parse command line arguments 
+    parser = argparse.ArgumentParser(description='machine learning pipeline args')
+    parser.add_argument('use_existing_data', help='int - 0 to obtain updated data from' 
+        + ' database, any other number to use existing dataset', type=int)
+    args = parser.parse_args()
+
+    # execute machine learning pipeline
+    print(f'Executing machine learning pipeline\n')
+    start = time.time() 
+    machine_learning_pipeline(args.use_existing_data)
+    end = time.time()
+    print(f'Execution time of machine learning pipeline: {end - start} s')
