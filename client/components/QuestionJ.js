@@ -1,21 +1,41 @@
 
-import React, {useState} from 'react';
-import {Text, View, Image, FlatList, SafeAreaView, TouchableOpacity, StyleSheet, ActivityIndicator} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Text, View, Image, FlatList, SafeAreaView, TouchableOpacity, StyleSheet, ActivityIndicator, TextPropTypes} from 'react-native';
 import * as firebase from 'firebase';
 import styles from './Styles';
 import { Table, Row, } from 'react-native-table-component';
 import axios from 'axios';
 import { Dimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Alert } from "react-native";
+import {funFactsJson} from '../funfacts';
 
 
 export default function QuestionJ(props) {
+
+
+    // {
+    //     surveyKey: surveyKey,
+    //     answeredQuestions: answeredQuestions,
+    //     skippedQuestions: skippedQuestions
+    // }
+
+    // console.log(props.route.params);
+    // const sideEffect = false
+    // if (props === undefined)  {
+    //     sideEffect = false;
+    // }
+    // console.log(sideEffect)
+
+
         
     const titleHead = ['SEASON', 'TEAM', 'POS']
     const table1head = ['PTS', 'AST', 'TRB', 'STL']
     const table2head = ['BLK', 'G', 'MP', 'FG%']
 
+    
 
+    
 
     const questionRespRef = firebase.database().ref().child('questionResponses')
 
@@ -37,18 +57,20 @@ export default function QuestionJ(props) {
     const [p2row2, setp2Row2] = useState([]);
     const [qKey, setQKey] = useState("")
 
+ 
+
 
     const baseUrl = 'http://10.0.2.2:5000'
 
 
 
-
+    
 
     const loadData = async () => {
         axios.get(baseUrl + '/stats/random')
             .then(function (response) {
 
-                console.log(response);
+           
                 
                 const data = response.data;
                 
@@ -73,7 +95,7 @@ export default function QuestionJ(props) {
                 setp2Title1([p2Stats["SEASON"], p2Stats["TEAM"], p2Stats["POS"]])
                 setp2Row1([p2Stats["PTS"], p2Stats["AST"], p2Stats["TRB"], p2Stats["STL"]])
                 setp2Row2([p2Stats["BLK"], p2Stats["G"], p2Stats["MP"], p2Stats["FG%"]])
-                console.log(response)
+                
 
                 
                 var fName = p1Stats["NAME"]
@@ -112,6 +134,7 @@ export default function QuestionJ(props) {
                     }
                 }
                 
+                
                 questionRef.once('value', function(snapshot) {
                     if (!snapshot.hasChild(qKeyN)) {
                         questionRespRef.child(qKeyN).set(respData)
@@ -145,15 +168,15 @@ export default function QuestionJ(props) {
 
 
     function dataPress(name) {
-        console.log(qKey);
+        
         questionRespRef.child(qKey).child(name).once('value').then(function(snapshot) {
             console.log(snapshot.val());
             const valUpdate = snapshot.val();
             console.log(valUpdate);
             questionRespRef.child(qKey).child(name).set(valUpdate + 1);
-            
-        }).then( () => {
             clearNames();
+        }).then( () => {
+            
             props.navigation.navigate('RoomScreen');
         });
         // loadData();
@@ -161,11 +184,36 @@ export default function QuestionJ(props) {
     }
 
 
+    function detailPress(name) {
+        // setSideEffect(false);
 
+        Alert.alert(
+            name + " " + "Season Achievements",
+            funFactsJson[name],
+            [
+              {
+                text: "Cancel",
+                onPress: () => console.log("Cancel Pressed"),
+                style: "cancel"
+              },
+              { text: "OK", onPress: () => console.log("OK Pressed") }
+            ]
+          );
+    }
+
+
+
+    
 
     useFocusEffect(
         React.useCallback(() => {
-            loadData();
+            
+            
+            console.log(playerNames)
+            if (props.route.params === undefined) {
+                console.log('2');
+                loadData();
+            }
         }, [])
       );
     
@@ -173,10 +221,10 @@ export default function QuestionJ(props) {
    
 
     const customStyles = StyleSheet.create({
-        container: { flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff' },
+        container: { flex: 1, padding: 16, paddingTop: 20, backgroundColor: '#fff' },
         head: { height: 40, backgroundColor: '#f1f8ff' },
         text: { margin: 6 },
-        tableTop: { marginTop: 80, marginBottom: 5}
+        tableTop: { marginTop: 70, marginBottom: 5}
     });
 
 
@@ -218,10 +266,15 @@ export default function QuestionJ(props) {
                                 source={{ uri: playerUris[index] }}
                                 
                                 style={{flex:1, width: 210, height: 400, marginBottom: 10}}/>
-
+                            
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.button5}
+                            onPress={() => detailPress(playerNames[index])}
+                        >
                             <Text style={styles.homeScreenText}>
                                 {item}</Text>
-                            
+
                         </TouchableOpacity>
                         
                         

@@ -77,10 +77,10 @@ export default StyleSheet.create({
         alignSelf: 'stretch'
     },
     button3: {
-        marginTop: 0,
+        marginTop: 10,
         alignItems: 'center',
         
-        padding: 15,
+        
        
         
         flex: 1,
@@ -96,6 +96,15 @@ export default StyleSheet.create({
         
         // flex: 1,
         alignSelf: 'stretch'
+    },
+    button5: {
+        
+        alignItems: 'center',
+        marginTop: 6,
+        flex: 1,
+        alignSelf: 'stretch',
+        marginBottom: 14
+        
     },
     profileTitle: {
         color: '#FFFF',
