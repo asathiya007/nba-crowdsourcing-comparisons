@@ -4,7 +4,8 @@ Project repository for Georgia Tech CS 6220 course project. Crowdsourcing and ma
 ## Get Started 
 1. Create and activate Python virtual environment with `pip`. See this link: `https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/`
 2. Install dependencies in `requirements.txt` with `pip` with the command `pip install -r requirements.txt`. 
-3. Run the app with this command: `flask run`. 
+3. Run the Flask API with this command: `flask run`. 
+4. Run the mobile client (emulator). See the instructions in the `client/README.md` file. 
 
 ## Execution Instructions - Train Machine Learning Models
 The machine learning models (logistic regression and random forest regressor) and scaler have already been trained and are available as `linear_regression.joblib`, `random_forest.joblib`, and `standard_scaler.joblib`. To retrain the models see the command below. Hyperparameters of the models can be changed in the `machine_learning.py` file. 
